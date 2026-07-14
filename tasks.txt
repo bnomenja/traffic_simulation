@@ -1,0 +1,27 @@
+Amine -> 
+- You will work in the road.rs file
+- You will mainly focus on the draw_roads() function
+- It will display the road for the simulation.
+You can make it as simple as in Intra as well as adding more stuffs to make it looks better.
+- I made some consts value to work with 
+
+Younes ->
+- You will work in the car.rs file
+- You have to implement the car Manager so that it can:
+    -- keep tracks of all the car of the simulation,
+    -- avoid spam creating cars
+    -- displays all cars
+- I made an enum and a car struct to make it easier
+- The update function of the car will handle the wole logic of the movement(stop at read light, direction to take on intersection, etc)
+
+Loïc -> 
+- I will work in light.rs
+- I will handle the logic of the trafic light to decide which light should be green
+- I'm responsible of the logic to avoid any collision and keeping the trafic as smooth as possible
+
+IMPORTANT FOR everyone:
+- Avoid changing the existing const in the consts.rs. You can add things be exept for width and height, don't change or remove the already existing ones.
+- Don't change the main at all.
+- Don't touch someone's part without talking to him first.
+- Feel free to modify the structs or implement more methodes as long as it makes your work easier. 
+But try to keep the fields of structs the same for the code to work well for everyone.
