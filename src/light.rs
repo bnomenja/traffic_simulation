@@ -73,7 +73,7 @@ impl TrafficController {
             if self.timer <= 0.0 {
                 self.next_active = self.pick_next(&counts);
                 self.clearing = true;
-                self.timer = 0.5;
+                self.timer = 1.5; 
             }
         }
     }
