@@ -98,16 +98,16 @@ impl TrafficController {
         let mv = WINDOW_WIDTH as f32 / 2.0;
         let mh = WINDOW_HEIGHT as f32 / 2.0;
         let gap = LANE_WIDTH;
-        let r = TRAFFIC_LIGHT_SIZE / 2.0;
+        let s = TRAFFIC_LIGHT_SIZE;
 
         let tl = if !self.clearing && self.active == Direction::South { GREEN } else { RED };
         let tr = if !self.clearing && self.active == Direction::West { GREEN } else { RED };
         let bl = if !self.clearing && self.active == Direction::East { GREEN } else { RED };
         let br = if !self.clearing && self.active == Direction::North { GREEN } else { RED };
 
-        draw_circle(mv - gap - 15.0, mh - gap - 15.0, r, tl);
-        draw_circle(mv + gap + 15.0, mh - gap - 15.0, r, tr);
-        draw_circle(mv - gap - 15.0, mh + gap + 15.0, r, bl);
-        draw_circle(mv + gap + 15.0, mh + gap + 15.0, r, br);
+        draw_rectangle(mv - gap - 15.0 - s / 2.0, mh - gap - 15.0 - s / 2.0, s, s, tl);
+        draw_rectangle(mv + gap + 15.0 - s / 2.0, mh - gap - 15.0 - s / 2.0, s, s, tr);
+        draw_rectangle(mv - gap - 15.0 - s / 2.0, mh + gap + 15.0 - s / 2.0, s, s, bl);
+        draw_rectangle(mv + gap + 15.0 - s / 2.0, mh + gap + 15.0 - s / 2.0, s, s, br);
     }
 }
