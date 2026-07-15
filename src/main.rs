@@ -3,12 +3,12 @@ use macroquad::prelude::*;
 mod consts;
 mod road;
 mod car;
-mod ligth;
+mod light;
 
 use consts::{WINDOW_WIDTH, WINDOW_HEIGHT};
-use road::draw_roads();
+use road::draw_roads;
 use car::{CarManager, Direction};
-use ligth::TrafficController;
+use light::TrafficController;
 
 fn window_conf() -> Conf {
     Conf {
@@ -22,15 +22,15 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut manager = CarManager::new();
-    let mut lights = TrafficController::new();
+    //let mut manager = CarManager::new();
+    //let mut lights = TrafficController::new();
 
     loop {
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
 
-        if is_key_pressed(KeyCode::Up) {
+        /*if is_key_pressed(KeyCode::Up) {
             manager.try_spawn_car(Direction::South);
         }
 
@@ -48,15 +48,15 @@ async fn main() {
 
         if is_key_pressed(KeyCode::R) {
             manager.try_spawn_car(Direction::random());
-        }
+        }*/
 
-        let t = get_frame_time();
-        lights.update(t as f64, &manager.cars);
-        manager.update(t, &lights);
+        //let t = get_frame_time();
+        //lights.update(t as f64, &manager.cars);
+        //manager.update(t, &lights);
 
         draw_roads();
-        lights.draw();
-        manager.draw();
+        //lights.draw();
+        //manager.draw();
 
         next_frame().await;
     }
