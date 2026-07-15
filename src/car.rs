@@ -154,14 +154,17 @@ impl Car {
     pub fn draw(&self) {
         draw_rectangle(self.x, self.y, CAR_WIDTH, CAR_WIDTH, self.color);
     }
+
 }
 
 pub struct CarManager {
+
     pub cars: Vec<Car>,
     last_spawn: [f64; 4],
 }
 
 impl CarManager {
+
     pub fn new() -> Self {
         Self {
             cars: Vec::new(),
