@@ -1,14 +1,14 @@
 use macroquad::prelude::*;
 
-mod consts;
-mod road;
 mod car;
+mod consts;
 mod light;
+mod road;
 
-use consts::{WINDOW_WIDTH, WINDOW_HEIGHT};
-use road::draw_roads;
 use car::{CarManager, Direction};
+use consts::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use light::TrafficController;
+use road::draw_roads;
 
 fn window_conf() -> Conf {
     Conf {
@@ -30,30 +30,35 @@ async fn main() {
             break;
         }
 
+        // ── Spawn cars ──
         if is_key_pressed(KeyCode::Up) {
-            manager.try_spawn_car(Direction::South);
-        }
-
-        if is_key_pressed(KeyCode::Down) {
             manager.try_spawn_car(Direction::North);
         }
-
-        if is_key_pressed(KeyCode::Right) {
-            manager.try_spawn_car(Direction::West);
+        if is_key_pressed(KeyCode::Down) {
+            manager.try_spawn_car(Direction::South);
         }
-
-        if is_key_pressed(KeyCode::Left) {
+        if is_key_pressed(KeyCode::Right) {
             manager.try_spawn_car(Direction::East);
         }
-
+        if is_key_pressed(KeyCode::Left) {
+            manager.try_spawn_car(Direction::West);
+        }
         if is_key_pressed(KeyCode::R) {
             manager.try_spawn_car(Direction::random());
         }
 
-        let t = get_frame_time();
-        lights.update(t as f64, &manager.cars);
-        manager.update(t, &lights);
+        // Clear all cars
+        if is_key_pressed(KeyCode::C) || is_key_pressed(KeyCode::Backspace) {
+            manager.cars.clear();
+        }
 
+        // ── Update ──
+        let dt = get_frame_time();
+        lights.update(dt as f64, &manager.cars);
+        manager.update(dt, &lights);
+
+        // ── Draw ──
+        clear_background(Color::from_rgba(4, 96, 85, 255));
         draw_roads();
         lights.draw();
         manager.draw();
