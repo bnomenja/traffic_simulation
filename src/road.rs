@@ -92,7 +92,7 @@ pub fn draw_roads() {
 
     draw_horizontal_lane_marks(center_y, center_x + half_road, window_width, lane_mark);
 
-    let stop_offset = 8.0;
+    let stop_offset = 3.0;
 
     let stop_thickness = 5.0;
 

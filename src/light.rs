@@ -27,7 +27,7 @@ impl TrafficController {
         Self {
             active: Direction::South,
             next_active: Direction::West,
-            timer: 1.0,
+            timer: 0.5,
             clearing: false,
         }
     }

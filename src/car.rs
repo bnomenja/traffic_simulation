@@ -155,6 +155,60 @@ impl Car {
         draw_rectangle(self.x, self.y, CAR_WIDTH, CAR_WIDTH, self.color);
     }
 
+    /// Returns the car's CURRENT movement vector (not its origin `direction`).
+    ///
+    /// A car's `direction` field never changes, but its actual heading does
+    /// once it enters a turn zone (e.g. a car with `Direction::North` that
+    /// turns right ends up moving along the +X axis, not -Y anymore).
+    /// Collision checks must use this, otherwise two cars that have turned
+    /// into the same physical lane are never compared against each other.
+    ///
+    /// The conditions here intentionally mirror the branches in `update()`
+    /// so the reported heading always matches the movement that will
+    /// actually be applied this frame.
+    pub fn heading(&self) -> (f32, f32) {
+        let mv = WINDOW_WIDTH as f32 / 2.0;
+        let mh = WINDOW_HEIGHT as f32 / 2.0;
+
+        match self.direction {
+            Direction::North => {
+                if self.y >= mh + 12.0 && self.y <= mh + 18.0 && self.color == RED {
+                    (1.0, 0.0) // turned right -> now heading East
+                } else if self.y >= mh - 48.0 && self.y <= mh - 43.0 && self.color == YELLOW {
+                    (-1.0, 0.0) // turned left -> now heading West
+                } else {
+                    (0.0, -1.0) // still straight -> heading North
+                }
+            }
+            Direction::South => {
+                if self.y >= mh - 48.0 && self.y <= mh - 43.0 && self.color == RED {
+                    (-1.0, 0.0) // turned right -> now heading West
+                } else if self.y >= mh + 12.0 && self.y <= mh + 18.0 && self.color == YELLOW {
+                    (1.0, 0.0) // turned left -> now heading East
+                } else {
+                    (0.0, 1.0) // still straight -> heading South
+                }
+            }
+            Direction::East => {
+                if self.x >= mv - 48.0 && self.x <= mv - 42.0 && self.color == RED {
+                    (0.0, 1.0) // turned right -> now heading South
+                } else if self.x >= mv + 12.0 && self.x <= mv + 18.0 && self.color == YELLOW {
+                    (0.0, -1.0) // turned left -> now heading North
+                } else {
+                    (1.0, 0.0) // still straight -> heading East
+                }
+            }
+            Direction::West => {
+                if self.x >= mv + 12.0 && self.x <= mv + 18.0 && self.color == RED {
+                    (0.0, -1.0) // turned right -> now heading North
+                } else if self.x >= mv - 48.0 && self.x <= mv - 42.0 && self.color == YELLOW {
+                    (0.0, 1.0) // turned left -> now heading South
+                } else {
+                    (-1.0, 0.0) // still straight -> heading West
+                }
+            }
+        }
+    }
 }
 
 pub struct CarManager {
@@ -220,34 +274,42 @@ impl CarManager {
             let mut blocked = false;
             let (mx, my) = (self.cars[i].x, self.cars[i].y);
             let my_dir = self.cars[i].direction;
+            // Current movement vector, not the origin `direction` — this is
+            // what actually changes once a car has turned into a new lane.
+            let my_heading = self.cars[i].heading();
 
             for j in 0..self.cars.len() {
                 if i == j {
                     continue;
                 }
                 let other = &self.cars[j];
-                if other.direction != my_dir {
+
+                // Only cars currently traveling the same way (same axis,
+                // same sign) can occupy the same lane and collide. This
+                // correctly matches cars that turned into each other's
+                // path, even if their *origin* directions differ, and it
+                // stops matching two cars that used to share a direction
+                // but have since turned onto different axes.
+                if other.heading() != my_heading {
                     continue;
                 }
 
                 let (ox, oy) = (other.x, other.y);
-                let dx = mx - ox;
-                let dy = my - oy;
-                let dist = (dx * dx + dy * dy).sqrt();
+                let dx = ox - mx;
+                let dy = oy - my;
 
-                if dist < safety_gap {
-                    
-                    let is_ahead = match my_dir {
-                        Direction::North => oy < my,
-                        Direction::South => oy > my,
-                        Direction::East  => ox > mx,
-                        Direction::West  => ox < mx,
-                    };
+                // Decompose the offset into "forward" (along the shared
+                // heading) and "lateral" (perpendicular to it) components.
+                let forward = dx * my_heading.0 + dy * my_heading.1;
+                let lateral = dx * -my_heading.1 + dy * my_heading.0;
 
-                    if is_ahead {
-                        blocked = true;
-                        break;
-                    }
+                // Blocked only if `other` is strictly ahead, within the
+                // safety gap, and roughly in the same lane (small lateral
+                // offset) rather than merely at the same coordinate by
+                // coincidence.
+                if forward > 0.0 && forward < safety_gap && lateral.abs() < CAR_WIDTH {
+                    blocked = true;
+                    break;
                 }
             }
 
