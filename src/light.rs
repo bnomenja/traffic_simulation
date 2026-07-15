@@ -8,6 +8,7 @@ pub struct TrafficController {
     next_active: Direction,
     timer: f64,
     clearing: bool,
+    waiting_time: [f64; 4],
 }
 
 const DIRECTIONS: [Direction; 4] = [
@@ -17,9 +18,20 @@ const DIRECTIONS: [Direction; 4] = [
     Direction::East,
 ];
 
-fn lane_capacity() -> usize {
-    let lane_length = 400.0_f32;
-    (lane_length / (CAR_WIDTH + SAFETY_GAP)).floor() as usize
+fn lane_length(direction: Direction) -> f32 {
+    let mv = WINDOW_WIDTH as f32 / 2.0;
+    let mh = WINDOW_HEIGHT as f32 / 2.0;
+
+    match direction {
+        Direction::South => mh - 10.0,
+        Direction::North => (WINDOW_HEIGHT as f32 - 35.0) - mh,
+        Direction::East => mv - 10.0,
+        Direction::West => (WINDOW_WIDTH as f32 - 35.0) - mv,
+    }
+}
+
+fn lane_capacity(direction: Direction) -> usize {
+    (lane_length(direction) / (CAR_WIDTH + SAFETY_GAP)).floor() as usize
 }
 
 impl TrafficController {
@@ -29,6 +41,7 @@ impl TrafficController {
             next_active: Direction::West,
             timer: 0.5,
             clearing: false,
+            waiting_time: [0.0; 4],
         }
     }
 
@@ -41,12 +54,19 @@ impl TrafficController {
             self.timer -= dt;
         }
 
+        for (i, &dir) in DIRECTIONS.iter().enumerate() {
+            if !self.clearing && dir == self.active {
+                self.waiting_time[i] = 0.0;
+            } else {
+                self.waiting_time[i] += dt;
+            }
+        }
+
         let south = cars.iter().filter(|c| c.direction == Direction::South).count();
         let west = cars.iter().filter(|c| c.direction == Direction::West).count();
         let north = cars.iter().filter(|c| c.direction == Direction::North).count();
         let east = cars.iter().filter(|c| c.direction == Direction::East).count();
         let counts = [south, west, north, east];
-        let capacity = lane_capacity();
 
         if self.clearing {
             if self.timer <= 0.0 {
@@ -60,7 +80,9 @@ impl TrafficController {
                     Direction::East => east,
                 };
 
+                let capacity = lane_capacity(self.active);
                 let ratio = count as f64 / capacity as f64;
+
                 self.timer = if ratio > 0.4 {
                     2.0
                 } else if count > 0 {
@@ -79,14 +101,23 @@ impl TrafficController {
     }
 
     fn pick_next(&self, counts: &[usize; 4]) -> Direction {
-        let current_idx = DIRECTIONS.iter().position(|&d| d == self.active).unwrap_or(0);
+        let current_idx = DIRECTIONS.iter().position(|&d| d == self.active).unwrap();
 
-        // Find the most congested lane, excluding the currently active one
         let mut best_idx = (current_idx + 1) % 4;
         let mut best_count = 0;
+        let mut best_wait: f64 = -1.0;
+
         for (i, &cnt) in counts.iter().enumerate() {
-            if i != current_idx && cnt > best_count {
+            if i == current_idx {
+                continue;
+            }
+
+            let wait = self.waiting_time[i];
+            let is_better = cnt > best_count || (cnt == best_count && wait > best_wait);
+
+            if is_better {
                 best_count = cnt;
+                best_wait = wait;
                 best_idx = i;
             }
         }

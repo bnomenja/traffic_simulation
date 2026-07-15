@@ -155,17 +155,8 @@ impl Car {
         draw_rectangle(self.x, self.y, CAR_WIDTH, CAR_WIDTH, self.color);
     }
 
-    /// Returns the car's CURRENT movement vector (not its origin `direction`).
-    ///
-    /// A car's `direction` field never changes, but its actual heading does
-    /// once it enters a turn zone (e.g. a car with `Direction::North` that
-    /// turns right ends up moving along the +X axis, not -Y anymore).
-    /// Collision checks must use this, otherwise two cars that have turned
-    /// into the same physical lane are never compared against each other.
-    ///
-    /// The conditions here intentionally mirror the branches in `update()`
-    /// so the reported heading always matches the movement that will
-    /// actually be applied this frame.
+    // heading describes how x and y are growing to know the lane he is curently heading
+    // (0.0, -1.0)-> heading North; (0.0, 1.0)-> heading South; (1.0, 0.0)-> heading East; (-1.0, 0.0)-> heading West; 
     pub fn heading(&self) -> (f32, f32) {
         let mv = WINDOW_WIDTH as f32 / 2.0;
         let mh = WINDOW_HEIGHT as f32 / 2.0;
@@ -274,40 +265,25 @@ impl CarManager {
             let mut blocked = false;
             let (mx, my) = (self.cars[i].x, self.cars[i].y);
             let my_dir = self.cars[i].direction;
-            // Current movement vector, not the origin `direction` — this is
-            // what actually changes once a car has turned into a new lane.
-            let my_heading = self.cars[i].heading();
+            let my_heading = self.cars[i].heading(); 
 
             for j in 0..self.cars.len() {
                 if i == j {
                     continue;
                 }
+
                 let other = &self.cars[j];
 
-                // Only cars currently traveling the same way (same axis,
-                // same sign) can occupy the same lane and collide. This
-                // correctly matches cars that turned into each other's
-                // path, even if their *origin* directions differ, and it
-                // stops matching two cars that used to share a direction
-                // but have since turned onto different axes.
                 if other.heading() != my_heading {
                     continue;
                 }
 
-                let (ox, oy) = (other.x, other.y);
-                let dx = ox - mx;
-                let dy = oy - my;
+                let dx = other.x - mx;
+                let dy = other.y - my;
 
-                // Decompose the offset into "forward" (along the shared
-                // heading) and "lateral" (perpendicular to it) components.
-                let forward = dx * my_heading.0 + dy * my_heading.1;
-                let lateral = dx * -my_heading.1 + dy * my_heading.0;
+                let forward = dx * my_heading.0 + dy * my_heading.1; //scalar product of 2 vector
 
-                // Blocked only if `other` is strictly ahead, within the
-                // safety gap, and roughly in the same lane (small lateral
-                // offset) rather than merely at the same coordinate by
-                // coincidence.
-                if forward > 0.0 && forward < safety_gap && lateral.abs() < CAR_WIDTH {
+                if forward > 0.0 && forward < safety_gap  { // ahead of me && too close && same lane
                     blocked = true;
                     break;
                 }
