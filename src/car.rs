@@ -38,22 +38,26 @@ impl Car {
     // draw a single car
     pub fn draw(&self) {
     }
+
 }
 
 //manage all the cars and avoid spawn spam
 pub struct CarManager {
+
     pub cars: Vec<Car>,
     last_spawn: [f64; 4], // last spawn for each direction
+
 }
 
 impl CarManager {
+
     pub fn new() -> Self {
     }
 
     // try to spawn a car if it is allowed
     pub fn try_spawn_car(&mut self, direction: Direction) {
     }
-
+    
     // update the position of each cars, if it is out of the simuation, remove it.
     pub fn update(&mut self, t: f32, , lights: &TrafficController) {
     }
@@ -61,4 +65,5 @@ impl CarManager {
     // draw all the cars
     pub fn draw(&self) {
     }
+
 }

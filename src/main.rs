@@ -3,12 +3,12 @@ use macroquad::prelude::*;
 mod consts;
 mod road;
 mod car;
-mod ligth;
+mod light;
 
 use consts::{WINDOW_WIDTH, WINDOW_HEIGHT};
-use road::draw_roads();
+use road::draw_roads;
 use car::{CarManager, Direction};
-use ligth::TrafficController;
+use light::TrafficController;
 
 fn window_conf() -> Conf {
     Conf {
