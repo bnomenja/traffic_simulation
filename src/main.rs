@@ -7,7 +7,7 @@ mod light;
 
 use consts::{WINDOW_WIDTH, WINDOW_HEIGHT};
 use road::draw_roads;
-use car::{CarManager, Direction};
+use car::{CarManager, CarTextures, Direction};
 use light::TrafficController;
 
 fn window_conf() -> Conf {
@@ -24,6 +24,7 @@ fn window_conf() -> Conf {
 async fn main() {
     let mut manager = CarManager::new();
     let mut lights = TrafficController::new();
+    let car_textures = CarTextures::load().await;
 
     loop {
         if is_key_pressed(KeyCode::Escape) {
@@ -61,7 +62,7 @@ async fn main() {
         clear_background(Color::from_rgba(4, 96, 85, 255));
         draw_roads();
         lights.draw();
-        manager.draw();
+        manager.draw(&car_textures);
 
         next_frame().await;
     }

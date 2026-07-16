@@ -3,6 +3,35 @@ use macroquad::rand::gen_range;
 use crate::consts::*;
 use crate::light::TrafficController;
 
+/// Holds the loaded car sprites and maps each car color to the right texture.
+pub struct CarTextures {
+    yellow: Texture2D,
+    blue: Texture2D,
+    red: Texture2D,
+}
+
+impl CarTextures {
+    /// Loads every sprite up front. Call once at startup, before the main loop,
+    /// since `load_texture` is async.
+    pub async fn load() -> Self {
+        let yellow = load_texture("assets/car_yellow.png").await.unwrap();
+        let blue = load_texture("assets/car_blue.png").await.unwrap();
+        let red = load_texture("assets/car_red.png").await.unwrap();
+
+        Self { yellow, blue, red }
+    }
+
+    fn for_color(&self, color: Color) -> &Texture2D {
+        if color == YELLOW {
+            &self.yellow
+        } else if color == BLUE {
+            &self.blue
+        } else {
+            &self.red
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     North,
@@ -151,8 +180,25 @@ impl Car {
         }
     }
 
-    pub fn draw(&self) {
-        draw_rectangle(self.x, self.y, CAR_WIDTH, CAR_WIDTH, self.color);
+    pub fn draw(&self, textures: &CarTextures) {
+        let texture = textures.for_color(self.color);
+        let (dx, dy) = self.heading();
+
+        let rotation = dx.atan2(-dy);
+
+        let half = CAR_WIDTH / 2.0;
+        draw_texture_ex(
+            texture,
+            self.x,
+            self.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(CAR_WIDTH, CAR_WIDTH)),
+                rotation,
+                pivot: Some(vec2(self.x + half, self.y + half)),
+                ..Default::default()
+            },
+        );
     }
 
     // heading describes how x and y are growing to know the lane he is curently heading
@@ -301,9 +347,9 @@ impl CarManager {
         });
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&self, textures: &CarTextures) {
         for car in &self.cars {
-            car.draw();
+            car.draw(textures);
         }
     }
 }
